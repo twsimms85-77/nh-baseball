@@ -359,9 +359,20 @@ const players = [
   { name:"R Fellows #21",     team:"Timberlane", GP:2, PA:2,  AB:2,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0,  "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:2,  HBP:0 },
   { name:"J Raymond #5",      team:"Timberlane", GP:1, PA:1,  AB:1,  AVG:1.000, OBP:1.000, SLG:1.000, OPS:2.000, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:1, R:1, BB:0, SO:0, HBP:0 },
   { name:"J Marcotte #14",    team:"Timberlane", GP:2, PA:1,  AB:1,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0, "1B":0, "2B":0, "3B":0, HR:0, BB:0, HBP:0, _partial:true },
-  // Exeter
-  { name:"R Plante #1",     team:"Exeter",    OPS:1.146 },
-  { name:"E Battles #12",   team:"Exeter",    OPS:1.078 },
+  // Exeter (7-1, 0 HR; G Mulrey #11 is 6 GP / 0 PA — pinch-runner only)
+  { name:"A Martin #20",    team:"Exeter", GP:8, PA:29, AB:26, AVG:.385, OBP:.429, SLG:.423, OPS:.852, H:10, "1B":9, "2B":1, "3B":0, HR:0, RBI:2, R:4, BB:2, SO:3, HBP:0 },
+  { name:"J Bakker #4",     team:"Exeter", GP:8, PA:28, AB:18, AVG:.000, OBP:.333, SLG:.000, OPS:.333, H:0,  "1B":0, "2B":0, "3B":0, HR:0, RBI:1, R:2, BB:9, SO:6, HBP:0 },
+  { name:"W Tobin #2",      team:"Exeter", GP:8, PA:28, AB:22, AVG:.182, OBP:.357, SLG:.182, OPS:.539, H:4,  "1B":4, "2B":0, "3B":0, HR:0, RBI:1, R:4, BB:5, SO:6, HBP:1 },
+  { name:"B Schimoler #7",  team:"Exeter", GP:8, PA:28, AB:22, AVG:.273, OBP:.429, SLG:.409, OPS:.838, H:6,  "1B":3, "2B":3, "3B":0, HR:0, RBI:5, R:5, BB:4, SO:3, HBP:2 },
+  { name:"C Crombie #3",    team:"Exeter", GP:8, PA:25, AB:20, AVG:.250, OBP:.400, SLG:.300, OPS:.700, H:5,  "1B":4, "2B":1, "3B":0, HR:0, RBI:2, R:3, BB:5, SO:8, HBP:0 },
+  { name:"B Wissler #6",    team:"Exeter", GP:7, PA:21, AB:21, AVG:.286, OBP:.286, SLG:.333, OPS:.619, H:6,  "1B":5, "2B":1, "3B":0, HR:0, RBI:2, R:1, BB:0, SO:5, HBP:0 },
+  { name:"E Battles #12",   team:"Exeter", GP:6, PA:17, AB:15, AVG:.400, OBP:.412, SLG:.667, OPS:1.078, H:6, "1B":2, "2B":4, "3B":0, HR:0, RBI:3, R:1, BB:1, SO:3, HBP:0 },
+  { name:"R Plante #1",     team:"Exeter", GP:6, PA:17, AB:12, AVG:.417, OBP:.562, SLG:.583, OPS:1.146, H:5, "1B":3, "2B":2, "3B":0, HR:0, RBI:3, R:3, BB:3, SO:2, HBP:1 },
+  { name:"N Engler #5",     team:"Exeter", GP:6, PA:16, AB:14, AVG:.143, OBP:.250, SLG:.286, OPS:.536, H:2,  "1B":0, "2B":2, "3B":0, HR:0, RBI:0, R:2, BB:2, SO:9, HBP:0 },
+  { name:"A Garvey #21",    team:"Exeter", GP:5, PA:9,  AB:9,  AVG:.111, OBP:.111, SLG:.111, OPS:.222, H:1,  "1B":1, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:4, HBP:0 },
+  { name:"A Carella #10",   team:"Exeter", GP:5, PA:8,  AB:6,  AVG:.000, OBP:.143, SLG:.000, OPS:.143, H:0,  "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:1, SO:0, HBP:0 },
+  { name:"H Reeder #22",    team:"Exeter", GP:3, PA:6,  AB:6,  AVG:.167, OBP:.167, SLG:.167, OPS:.333, H:1,  "1B":1, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:0, SO:0, HBP:0 },
+  { name:"G Mulrey #11",    team:"Exeter", GP:6, PA:0,  AB:0,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0,  "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:0, SO:0, HBP:0 },
   // Winnacunnet (8 GP, 0 HR; OBP/SLG derived from H/BB/HBP/AB/PA/TB)
   { name:"B Pinso...ault #10", team:"Winnacunnet", GP:8, PA:31, AB:29, AVG:.310, OBP:.323, SLG:.414, OPS:.737, H:9,  "1B":6,  "2B":3, "3B":0, HR:0, RBI:9, R:5,  BB:1, SO:4, HBP:0 },
   { name:"B Larck #2",      team:"Winnacunnet", GP:8, PA:30, AB:23, AVG:.304, OBP:.467, SLG:.478, OPS:.945, H:7,  "1B":4,  "2B":2, "3B":1, HR:0, RBI:1, R:11, BB:6, SO:2, HBP:1 },
