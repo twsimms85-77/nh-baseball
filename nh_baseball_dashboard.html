@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>NH Baseball Intel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1e3a5f; --navy-2:#16304f; --blue:#2563eb; --blue-soft:#dbeafe;
+    --bg:#F5F6F8; --surface:#fff; --border:#E5E7EB;
+    --text:#111827; --muted:#6B7280; --warn:#FEF3C7; --warn-b:#F59E0B;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;
+    font-size:13px;line-height:1.5;height:100%;}
+  .app{display:flex;height:100vh;}
+
+  /* Sidebar */
+  .side{width:220px;background:var(--navy);color:#fff;display:flex;flex-direction:column;
+    flex-shrink:0;}
+  .brand{padding:20px 18px 16px;border-bottom:0.5px solid rgba(255,255,255,.12);}
+  .brand h1{font-size:14px;font-weight:600;margin:0;letter-spacing:.2px;}
+  .brand .sub{font-size:11px;color:#9bb1cc;margin-top:3px;}
+  .nav{padding:14px 10px;border-bottom:0.5px solid rgba(255,255,255,.12);}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:6px;
+    color:#cdd9e8;font-size:12px;cursor:pointer;font-weight:500;}
+  .nav-item:hover{background:rgba(255,255,255,.06);}
+  .nav-item.active{background:var(--blue);color:#fff;}
+  .nav-label{font-size:10px;font-weight:600;color:#7d92ad;text-transform:uppercase;
+    letter-spacing:.6px;padding:14px 12px 6px;}
+  .teams{padding:0 10px 18px;overflow-y:auto;flex:1;}
+  .team-pick{display:flex;align-items:center;gap:9px;padding:6px 12px;border-radius:6px;
+    color:#cdd9e8;font-size:12px;cursor:pointer;}
+  .team-pick:hover{background:rgba(255,255,255,.06);}
+  .team-pick.active{background:rgba(37,99,235,.18);color:#fff;}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+  /* Main */
+  .main{flex:1;overflow-y:auto;padding:24px 28px 40px;}
+  .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+  .page-title{font-size:18px;font-weight:600;color:var(--navy);margin:0;}
+  .page-meta{color:var(--muted);font-size:12px;}
+
+  .card{background:var(--surface);border:0.5px solid var(--border);border-radius:8px;
+    padding:18px 20px;margin-bottom:16px;}
+  .card h3{margin:0 0 12px;font-size:13px;font-weight:600;color:var(--navy);}
+
+  /* Filter row */
+  .filters{display:flex;gap:18px;align-items:center;flex-wrap:wrap;}
+  .filter{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+  .filter input[type="range"]{accent-color:var(--blue);}
+  .filter-val{font-weight:600;color:var(--navy);min-width:24px;text-align:right;}
+  .search{border:0.5px solid var(--border);border-radius:6px;padding:5px 9px;font-size:12px;
+    font-family:inherit;outline:none;width:160px;}
+  .search:focus{border-color:var(--blue);}
+
+  /* Table */
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead th{background:#FAFAFB;text-align:right;padding:8px 9px;color:var(--navy);
+    font-weight:600;border-bottom:0.5px solid var(--border);cursor:pointer;
+    user-select:none;white-space:nowrap;position:sticky;top:0;}
+  thead th.left{text-align:left;}
+  thead th:hover{background:#F1F2F4;}
+  thead th .arr{display:inline-block;width:8px;color:var(--blue);margin-left:2px;}
+  tbody td{padding:7px 9px;text-align:right;border-bottom:0.5px solid var(--border);
+    white-space:nowrap;}
+  tbody td.left{text-align:left;}
+  tbody tr:hover{background:#FAFBFC;}
+  tbody tr.partial{background:var(--warn);}
+  tbody tr.partial:hover{background:#FCE9B0;}
+
+  .player-cell{display:flex;align-items:center;gap:8px;}
+  .tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;
+    font-weight:600;color:#fff;letter-spacing:.2px;}
+  .warn-mark{color:var(--warn-b);font-size:11px;}
+
+  .rank-pill{display:inline-block;min-width:22px;padding:2px 6px;border-radius:10px;
+    background:var(--blue-soft);color:var(--blue);font-size:10px;font-weight:600;}
+  .rank-pill.top{background:var(--blue);color:#fff;}
+
+  .num-muted{color:var(--muted);}
+  .empty{color:#cbd5e1;}
+
+  .pill-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+  .stat-pill{background:#F3F4F6;border:0.5px solid var(--border);border-radius:6px;
+    padding:6px 10px;font-size:11px;color:var(--muted);}
+  .stat-pill b{display:block;color:var(--navy);font-size:14px;font-weight:600;margin-top:1px;}
+
+  .hidden{display:none;}
+  .footer-note{margin-top:20px;color:var(--muted);font-size:11px;}
+
+  /* Team-tag colors */
+  .t-trinity{background:#1e40af}.t-goffstown{background:#92400E}.t-alvirne{background:#065F46}
+  .t-pinkerton{background:#6D28D9}.t-nashua_n{background:#BE185D}.t-nashua_s{background:#7C3AED}
+  .t-bedford{background:#B45309}.t-windham{background:#0E7490}.t-keene{background:#4B5563}
+  .t-concord{background:#B91C1C}.t-bishop_g{background:#DC2626}.t-timberlane{background:#4338CA}
+  .t-exeter{background:#0369A1}.t-winnacunnet{background:#15803D}
+  .t-londonderry{background:#4F46E5}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="side">
+    <div class="brand">
+      <h1>NH Baseball Intel</h1>
+      <div class="sub">Spring 2026 · 15 of 20 teams</div>
+    </div>
+    <div class="nav">
+      <div class="nav-item active" data-view="batting">Batting by Team</div>
+      <div class="nav-item" data-view="compare">Team Comparison</div>
+      <div class="nav-item" data-view="leaders">League Leaders</div>
+    </div>
+    <div class="nav-label">Teams</div>
+    <div class="teams" id="teamList"></div>
+  </aside>
+
+  <main class="main">
+    <!-- BATTING VIEW -->
+    <section id="view-batting">
+      <div class="page-head">
+        <div>
+          <h2 class="page-title" id="battingTitle">All Teams</h2>
+          <div class="page-meta" id="battingMeta"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="filters">
+          <div class="filter">
+            <span>Min AB</span>
+            <input id="minAb" type="range" min="0" max="35" value="10">
+            <span class="filter-val" id="minAbVal">10</span>
+          </div>
+          <div class="filter">
+            <span>Search</span>
+            <input class="search" id="search" type="text" placeholder="Player or #">
+          </div>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="max-height:calc(100vh - 260px);overflow:auto;">
+          <table id="battingTable"></table>
+        </div>
+      </div>
+      <div class="footer-note" id="battingFooter"></div>
+    </section>
+
+    <!-- COMPARE VIEW -->
+    <section id="view-compare" class="hidden">
+      <div class="page-head">
+        <div>
+          <h2 class="page-title">Team Comparison</h2>
+          <div class="page-meta">14 teams · sort by any column · top-3 ranked</div>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="max-height:calc(100vh - 180px);overflow:auto;">
+          <table id="teamTable"></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- LEADERS VIEW -->
+    <section id="view-leaders" class="hidden">
+      <div class="page-head">
+        <div>
+          <h2 class="page-title">League OPS Leaderboard</h2>
+          <div class="page-meta">Min AB 10 · qualified hitters</div>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table id="leadersTable"></table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+/* =========================================================================
+   DATA — players
+   Full stats: only C Centorino (from README schema example).
+   League leaderboard top-20 + notable mentions: name, team, OPS (and any
+   stats explicitly given in the README). Missing fields are null/"—".
+   Replace this array as you ingest each team's full screen-batches.
+   ========================================================================= */
+const players = [
+  // Trinity
+  { name:"C Centorino #35", team:"Trinity", GP:8, PA:29, AB:21, AVG:.524, OBP:.621, SLG:.905, OPS:1.525, H:11, "1B":6, "2B":3, "3B":1, HR:1, RBI:11, R:7, BB:5, SO:3, HBP:2 },
+  { name:"J Hermann #2",    team:"Trinity", GP:4, PA:4,  AB:4,  AVG:.500, OBP:.500, SLG:.500, OPS:1.000, H:2,  "1B":2, "2B":0, "3B":0, HR:0, RBI:1,  R:0,  BB:0, SO:0, HBP:0 },
+  { name:"A Harris #12",    team:"Trinity", GP:8, PA:29, AB:21, AVG:.429, OBP:.517, SLG:.714, OPS:1.232, H:9,  "1B":5, "2B":3, "3B":0, HR:1, RBI:13, R:8,  BB:6, SO:3, HBP:0 },
+  { name:"J Grillo-Moore",  team:"Trinity", GP:6, PA:13, AB:8,  AVG:.375, OBP:.538, SLG:.625, OPS:1.163, H:3,  "1B":1, "2B":2, "3B":0, HR:0, RBI:2,  R:4,  BB:2, SO:1, HBP:2 },
+  { name:"N Lavigne #11",   team:"Trinity", GP:8, PA:30, AB:25, AVG:.320, OBP:.433, SLG:.640, OPS:1.073, H:8,  "1B":3, "2B":3, "3B":1, HR:1, RBI:8,  R:10, BB:5, SO:4, HBP:0 },
+  { name:"T Lucier #9",     team:"Trinity", GP:7, PA:25, AB:19, AVG:.316, OBP:.480, SLG:.579, OPS:1.059, H:6,  "1B":3, "2B":2, "3B":0, HR:1, RBI:2,  R:10, BB:6, SO:6, HBP:0 },
+  { name:"C Lucier",        team:"Trinity", GP:7, PA:22, AB:16, AVG:.312, OBP:.455, SLG:.500, OPS:.955,  H:5,  "1B":3, "2B":1, "3B":1, HR:0, RBI:5,  R:4,  BB:4, SO:4, HBP:1 },
+  { name:"C Hurley #10",    team:"Trinity", GP:8, PA:26, AB:16, AVG:.250, OBP:.480, SLG:.375, OPS:.855,  H:4,  "1B":3, "2B":0, "3B":1, HR:0, RBI:6,  R:4,  BB:5, SO:5, HBP:3 },
+  { name:"O Service #5",    team:"Trinity", GP:8, PA:33, AB:27, AVG:.222, OBP:.364, SLG:.370, OPS:.734,  H:6,  "1B":2, "2B":4, "3B":0, HR:0, RBI:1,  R:10, BB:5, SO:5, HBP:1 },
+  { name:"L Locke #16",     team:"Trinity", GP:7, PA:20, AB:18, AVG:.222, OBP:.300, SLG:.222, OPS:.522,  H:4,  "1B":4, "2B":0, "3B":0, HR:0, RBI:2,  R:2,  BB:5, SO:5, HBP:0 },
+  { name:"M Devall #4",     team:"Trinity", GP:8, PA:24, AB:17, AVG:.176, OBP:.391, SLG:.235, OPS:.627,  H:3,  "1B":2, "2B":1, "3B":0, HR:0, RBI:3,  R:4,  BB:5, SO:4, HBP:1 },
+  { name:"J Leonard #19",   team:"Trinity", GP:1, PA:1,  AB:1,  AVG:.000, OBP:.000, SLG:.000, OPS:.000,  H:0,  "1B":0, "2B":0, "3B":0, HR:0, RBI:0,  R:0,  BB:0, SO:0, HBP:0 },
+  { name:"A Noyes",         team:"Trinity", GP:1, PA:1,  AB:0,  _partial:true },
+  // Goffstown
+  { name:"Z Tarrier #3",    team:"Goffstown", GP:8, PA:34, AB:22, AVG:.318, OBP:.529, SLG:.455, OPS:.984, H:7,  "1B":4,  "2B":3, "3B":0, HR:0, RBI:2, R:5,  BB:11, SO:1,  HBP:0 },
+  { name:"B Godette #12",   team:"Goffstown", GP:8, PA:33, AB:30, AVG:.233, OBP:.303, SLG:.500, OPS:.803, H:7,  "1B":1,  "2B":5, "3B":0, HR:1, RBI:7, R:5,  BB:3,  SO:11, HBP:0 },
+  { name:"B Baxter #1",     team:"Goffstown", GP:8, PA:31, AB:27, AVG:.296, OBP:.387, SLG:.333, OPS:.720, H:8,  "1B":7,  "2B":1, "3B":0, HR:0, RBI:4, R:4,  BB:4,  SO:4,  HBP:0 },
+  { name:"C Gilliland #9",  team:"Goffstown", GP:8, PA:30, AB:21, AVG:.286, OBP:.500, SLG:.333, OPS:.833, H:6,  "1B":5,  "2B":1, "3B":0, HR:0, RBI:2, R:4,  BB:9,  SO:10, HBP:0 },
+  { name:"O Sereno #11",    team:"Goffstown", GP:8, PA:30, AB:26, AVG:.385, OBP:.448, SLG:.385, OPS:.833, H:10, "1B":10, "2B":0, "3B":0, HR:0, RBI:0, R:4,  BB:3,  SO:1,  HBP:0 },
+  { name:"O Hazelbaker #5", team:"Goffstown", GP:7, PA:30, AB:27, AVG:.185, OBP:.267, SLG:.296, OPS:.563, H:5,  "1B":3,  "2B":1, "3B":1, HR:0, RBI:3, R:5,  BB:3,  SO:8,  HBP:0 },
+  { name:"T Hastings #8",   team:"Goffstown", GP:8, PA:20, AB:17, AVG:.353, OBP:.450, SLG:.412, OPS:.862, H:6,  "1B":5,  "2B":1, "3B":0, HR:0, RBI:4, R:3,  BB:3,  SO:2,  HBP:0 },
+  { name:"D Hunt #10",      team:"Goffstown", GP:6, PA:20, AB:16, AVG:.062, OBP:.250, SLG:.125, OPS:.375, H:1,  "1B":0,  "2B":1, "3B":0, HR:0, RBI:3, R:2,  BB:4,  SO:7,  HBP:0 },
+  { name:"O Dutton #2",     team:"Goffstown", GP:7, PA:18, AB:16, AVG:.125, OBP:.167, SLG:.188, OPS:.354, H:2,  "1B":1,  "2B":1, "3B":0, HR:0, RBI:6, R:3,  BB:0,  SO:5,  HBP:1 },
+  { name:"R Lawrence #15",  team:"Goffstown", GP:4, PA:10, AB:6,  AVG:.333, OBP:.600, SLG:.333, OPS:.933, H:2,  "1B":2,  "2B":0, "3B":0, HR:0, _partial:true },
+  // Alvirne  (1-6, 7 GP team; SO unknown for Baker/Benning — clipped on RBI/R/BB/SO screen)
+  { name:"M Bebris #10",    team:"Alvirne", GP:7, PA:26, AB:22, AVG:.318, OBP:.423, SLG:.409, OPS:.832, H:7, "1B":5, "2B":2, "3B":0, HR:0, RBI:0, R:2, BB:4, SO:3, HBP:0 },
+  { name:"J Krueger #4",    team:"Alvirne", GP:7, PA:25, AB:24, AVG:.333, OBP:.360, SLG:.583, OPS:.943, H:8, "1B":4, "2B":3, "3B":0, HR:1, RBI:5, R:5, BB:1, SO:4, HBP:0 },
+  { name:"P Millette #9",   team:"Alvirne", GP:7, PA:24, AB:19, AVG:.158, OBP:.333, SLG:.211, OPS:.544, H:3, "1B":2, "2B":1, "3B":0, HR:0, RBI:1, R:4, BB:5, SO:8, HBP:0 },
+  { name:"L Norse #2",      team:"Alvirne", GP:7, PA:22, AB:20, AVG:.350, OBP:.409, SLG:.350, OPS:.759, H:7, "1B":7, "2B":0, "3B":0, HR:0, RBI:0, R:3, BB:2, SO:7, HBP:0 },
+  { name:"M Beach #14",     team:"Alvirne", GP:7, PA:22, AB:19, AVG:.263, OBP:.364, SLG:.316, OPS:.679, H:5, "1B":4, "2B":1, "3B":0, HR:0, RBI:5, R:4, BB:3, SO:0, HBP:0 },
+  { name:"B Mitchell #23",  team:"Alvirne", GP:7, PA:20, AB:19, AVG:.105, OBP:.150, SLG:.158, OPS:.308, H:2, "1B":1, "2B":1, "3B":0, HR:0, RBI:2, R:2, BB:0, SO:5, HBP:1 },
+  { name:"L Orr #24",       team:"Alvirne", GP:6, PA:17, AB:16, AVG:.062, OBP:.118, SLG:.062, OPS:.180, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:1, SO:3, HBP:0 },
+  { name:"A Drown #7",      team:"Alvirne", GP:5, PA:15, AB:14, AVG:.286, OBP:.333, SLG:.286, OPS:.619, H:4, "1B":4, "2B":0, "3B":0, HR:0, RBI:4, R:1, BB:1, SO:2, HBP:0 },
+  { name:"J Workman #21",   team:"Alvirne", GP:5, PA:14, AB:14, AVG:.143, OBP:.143, SLG:.143, OPS:.286, H:2, "1B":2, "2B":0, "3B":0, HR:0, RBI:2, R:2, BB:0, SO:7, HBP:0 },
+  { name:"B Buja #6",       team:"Alvirne", GP:4, PA:10, AB:9,  AVG:.111, OBP:.200, SLG:.111, OPS:.311, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:1, R:0, BB:1, SO:3, HBP:0 },
+  { name:"G Baviello #3",   team:"Alvirne", GP:4, PA:7,  AB:6,  AVG:.000, OBP:.143, SLG:.000, OPS:.143, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, HBP:1 },
+  { name:"C Baker #5",      team:"Alvirne", GP:3, PA:5,  AB:5,  AVG:.400, OBP:.400, SLG:.400, OPS:.800, H:2, "1B":2, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:0, HBP:0 },
+  { name:"C Benning #8",    team:"Alvirne",       PA:2,  AB:2,  AVG:.500, OBP:.500, SLG:.500, OPS:1.000, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:1, R:0, BB:0, HBP:0 },
+  // Pinkerton (7-1; 0 HR, 50 BB league-leader)
+  { name:"K Plasse #3",     team:"Pinkerton", GP:8, PA:35, AB:22, AVG:.364, OBP:.529, SLG:.545, OPS:1.075, H:8,  "1B":6, "2B":0, "3B":2, HR:0, RBI:7, R:9,  BB:8, SO:5,  HBP:2 },
+  { name:"L Beaulieu #4",   team:"Pinkerton", GP:8, PA:32, AB:24, AVG:.417, OBP:.562, SLG:.500, OPS:1.062, H:10, "1B":8, "2B":2, "3B":0, HR:0, RBI:3, R:11, BB:6, SO:1,  HBP:2 },
+  { name:"B Connolly #19",  team:"Pinkerton", GP:8, PA:30, AB:22, AVG:.318, OBP:.500, SLG:.409, OPS:.909,  H:7,  "1B":5, "2B":2, "3B":0, HR:0, RBI:2, R:4,  BB:4, SO:6,  HBP:4 },
+  { name:"K Judd #18",      team:"Pinkerton", GP:8, PA:30, AB:25, AVG:.160, OBP:.300, SLG:.160, OPS:.460,  H:4,  "1B":4, "2B":0, "3B":0, HR:0, RBI:5, R:3,  BB:5, SO:4,  HBP:0 },
+  { name:"H Marshall #1",   team:"Pinkerton", GP:7, PA:29, AB:20, AVG:.250, OBP:.429, SLG:.300, OPS:.729,  H:5,  "1B":4, "2B":1, "3B":0, HR:0, RBI:3, R:4,  BB:7, SO:7,  HBP:0 },
+  { name:"M Hanna #2",      team:"Pinkerton", GP:8, PA:27, AB:20, AVG:.150, OBP:.346, SLG:.250, OPS:.596,  H:3,  "1B":2, "2B":0, "3B":1, HR:0, RBI:1, R:4,  BB:6, SO:12, HBP:0 },
+  { name:"H Braiser #5",    team:"Pinkerton", GP:6, PA:25, AB:18, AVG:.389, OBP:.560, SLG:.444, OPS:1.004, H:7,  "1B":6, "2B":1, "3B":0, HR:0, RBI:6, R:5,  BB:7, SO:4,  HBP:0 },
+  { name:"B Eckerman #16",  team:"Pinkerton", GP:7, PA:23, AB:22, AVG:.273, OBP:.304, SLG:.273, OPS:.577,  H:6,  "1B":6, "2B":0, "3B":0, HR:0, RBI:1, R:3,  BB:1, SO:7,  HBP:0 },
+  { name:"J Acevedo #7",    team:"Pinkerton", GP:5, PA:18, AB:17, AVG:.294, OBP:.333, SLG:.294, OPS:.627,  H:5,  "1B":5, "2B":0, "3B":0, HR:0, RBI:3, R:4,  BB:1, SO:2,  HBP:0 },
+  { name:"B Yennaco #9",    team:"Pinkerton", GP:4, PA:15, AB:10, AVG:.200, OBP:.467, SLG:.300, OPS:.767,  H:2,  "1B":1, "2B":1, "3B":0, HR:0, RBI:1, R:4,  BB:5, SO:4,  HBP:0 },
+  { name:"L Moore #11",     team:"Pinkerton", GP:5, PA:11, AB:11, AVG:.182, OBP:.182, SLG:.364, OPS:.545,  H:2,  "1B":1, "2B":0, "3B":1, HR:0, RBI:2, R:0,  BB:0, SO:1,  HBP:0 },
+  { name:"M Talbot #12",    team:"Pinkerton", GP:1, PA:4,  AB:2,  AVG:.500, OBP:.750, SLG:.500, OPS:1.250, H:1,  "1B":1, "2B":0, "3B":0, HR:0, _partial:true },
+  { name:"D Bellistri #15", team:"Pinkerton", GP:1, PA:4,  AB:3,  AVG:.000, OBP:.250, SLG:.000, OPS:.250,  H:0,  "1B":0, "2B":0, "3B":0, HR:0, _partial:true },
+  { name:"B Krol #14",      team:"Pinkerton", GP:2, PA:3,  AB:3,  _partial:true },
+  // Nashua N (6 GP; cold offense, league-worst K% 33.5%, 0 HR; OBP/SLG/OPS derived from H/BB/HBP/AB/PA/TB)
+  { name:"D Bolton #1",     team:"Nashua N", GP:6, PA:22, AB:17, AVG:.235, OBP:.409, SLG:.294, OPS:.703, H:4, "1B":3, "2B":1, "3B":0, HR:0, RBI:3, R:4, BB:2, SO:8,  HBP:3 },
+  { name:"N Sullivan #5",   team:"Nashua N", GP:6, PA:20, AB:17, AVG:.353, OBP:.450, SLG:.412, OPS:.862, H:6, "1B":5, "2B":1, "3B":0, HR:0, RBI:3, R:2, BB:1, SO:3,  HBP:2 },
+  { name:"O Forcier #23",   team:"Nashua N", GP:6, PA:19, AB:16, AVG:.188, OBP:.316, SLG:.188, OPS:.503, H:3, "1B":3, "2B":0, "3B":0, HR:0, RBI:2, R:2, BB:2, SO:5,  HBP:1 },
+  { name:"J Munroe #18",    team:"Nashua N", GP:6, PA:19, AB:15, AVG:.133, OBP:.316, SLG:.133, OPS:.449, H:2, "1B":2, "2B":0, "3B":0, HR:0, RBI:1, R:3, BB:2, SO:5,  HBP:2 },
+  { name:"B Kelly #17",     team:"Nashua N", GP:6, PA:18, AB:17, AVG:.176, OBP:.167, SLG:.176, OPS:.343, H:3, "1B":3, "2B":0, "3B":0, HR:0, RBI:4, R:1, BB:0, SO:5,  HBP:0 },
+  { name:"B Ouellet #6",    team:"Nashua N", GP:6, PA:18, AB:15, AVG:.200, OBP:.333, SLG:.200, OPS:.533, H:3, "1B":3, "2B":0, "3B":0, HR:0, RBI:1, R:1, BB:3, SO:4,  HBP:0 },
+  { name:"A Butler #2",     team:"Nashua N", GP:6, PA:17, AB:14, AVG:.071, OBP:.235, SLG:.071, OPS:.307, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:2, R:1, BB:3, SO:6,  HBP:0 },
+  { name:"J Beaulieu #4",   team:"Nashua N", GP:6, PA:17, AB:16, AVG:.125, OBP:.125, SLG:.125, OPS:.250, H:2, "1B":2, "2B":0, "3B":0, HR:0, RBI:0, R:2, BB:0, SO:10, HBP:0 },
+  { name:"N Stefiuk #15",   team:"Nashua N", GP:2, PA:6,  AB:5,  AVG:.000, OBP:.167, SLG:.000, OPS:.167, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:1, SO:4,  HBP:0 },
+  { name:"C Decker #21",    team:"Nashua N", GP:1, PA:3,  AB:2,  AVG:.000, OBP:.333, SLG:.000, OPS:.333, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:1, SO:2,  HBP:0 },
+  { name:"S Kobs #11",      team:"Nashua N", GP:2, PA:3,  AB:2,  AVG:.000, OBP:.333, SLG:.000, OPS:.333, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:1, SO:2,  HBP:0 },
+  { name:"Z Fisher #9",     team:"Nashua N", GP:1, PA:2,  AB:2,  AVG:.500, OBP:.500, SLG:.500, OPS:1.000, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:1,  HBP:0 },
+  { name:"C Hayes #12",     team:"Nashua N", GP:1, PA:2,  AB:2,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:1,  HBP:0 },
+  { name:"A Garcia #24",    team:"Nashua N", GP:1, PA:1,  AB:0,  AVG:.000, OBP:1.000, SLG:.000, OPS:1.000, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:0, HBP:1 },
+  // Nashua S (3-4; 1 HR by O'Connor; cold offense, .529 team OPS)
+  { name:"J Caissie #23",   team:"Nashua S", GP:7, PA:23, AB:22, AVG:.318, OBP:.318, SLG:.318, OPS:.636, H:7, "1B":7, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:2, HBP:0 },
+  { name:"J Ninteau #3",    team:"Nashua S", GP:7, PA:23, AB:17, AVG:.059, OBP:.304, SLG:.118, OPS:.422, H:1, "1B":0, "2B":1, "3B":0, HR:0, RBI:0, R:2, BB:5, SO:3, HBP:1 },
+  { name:"A O'Connor #24",  team:"Nashua S", GP:7, PA:19, AB:17, AVG:.235, OBP:.316, SLG:.588, OPS:.904, H:4, "1B":1, "2B":1, "3B":1, HR:1, RBI:4, R:3, BB:2, SO:9, HBP:0 },
+  { name:"M Demers #6",     team:"Nashua S", GP:6, PA:19, AB:18, AVG:.222, OBP:.263, SLG:.278, OPS:.541, H:4, "1B":3, "2B":1, "3B":0, HR:0, RBI:1, R:1, BB:0, SO:7, HBP:1 },
+  { name:"O Varley #4",     team:"Nashua S", GP:7, PA:19, AB:17, AVG:.176, OBP:.263, SLG:.294, OPS:.557, H:3, "1B":1, "2B":2, "3B":0, HR:0, RBI:2, R:0, BB:2, SO:9, HBP:0 },
+  { name:"R Caruso #11",    team:"Nashua S", GP:7, PA:18, AB:14, AVG:.286, OBP:.353, SLG:.357, OPS:.710, H:4, "1B":3, "2B":1, "3B":0, HR:0, RBI:1, R:2, BB:2, SO:5, HBP:0 },
+  { name:"G Schmidt #13",   team:"Nashua S", GP:6, PA:15, AB:13, AVG:.231, OBP:.333, SLG:.308, OPS:.641, H:3, "1B":2, "2B":1, "3B":0, HR:0, RBI:2, R:1, BB:2, SO:6, HBP:0 },
+  { name:"N Levine #21",    team:"Nashua S", GP:6, PA:11, AB:10, AVG:.100, OBP:.182, SLG:.100, OPS:.282, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:1, HBP:1 },
+  { name:"B Doughty #2",    team:"Nashua S", GP:4, PA:9,  AB:7,  AVG:.000, OBP:.125, SLG:.000, OPS:.125, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:2, BB:1, SO:1, HBP:0 },
+  { name:"J Delannoy #1",   team:"Nashua S", GP:4, PA:9,  AB:6,  AVG:.167, OBP:.375, SLG:.167, OPS:.542, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:2, SO:2, HBP:0 },
+  { name:"A Tolentino #15", team:"Nashua S", GP:4, PA:7,  AB:6,  AVG:.167, OBP:.286, SLG:.167, OPS:.452, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:1, SO:3, HBP:0 },
+  { name:"R Derusha #7",    team:"Nashua S", GP:4, PA:5,  AB:4,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:2, HBP:0 },
+  { name:"A Thibeault #9",  team:"Nashua S", GP:3, PA:4,  AB:4,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0, "1B":0, "2B":0, "3B":0, HR:0, BB:0, HBP:0, _partial:true },
+  { name:"M Conti #8",      team:"Nashua S",  _partial:true },
+  // Bedford (7 GP, 0 HR — most balanced bottom-half team per README)
+  { name:"J Topf #2",       team:"Bedford", GP:7, PA:25, AB:23, AVG:.217, OBP:.280, SLG:.348, OPS:.628, H:5, "1B":3, "2B":1, "3B":1, HR:0, RBI:1, R:3, BB:2, SO:1, HBP:0 },
+  { name:"J Gilbert #14",   team:"Bedford", GP:7, PA:23, AB:21, AVG:.286, OBP:.348, SLG:.333, OPS:.681, H:6, "1B":5, "2B":1, "3B":0, HR:0, RBI:1, R:4, BB:2, SO:4, HBP:0 },
+  { name:"N Duquette #1",   team:"Bedford", GP:7, PA:22, AB:20, AVG:.300, OBP:.364, SLG:.300, OPS:.664, H:6, "1B":6, "2B":0, "3B":0, HR:0, RBI:1, R:1, BB:1, SO:4, HBP:1 },
+  { name:"B Labonte #12",   team:"Bedford", GP:7, PA:21, AB:19, AVG:.263, OBP:.333, SLG:.368, OPS:.702, H:5, "1B":4, "2B":0, "3B":1, HR:0, RBI:3, R:3, BB:2, SO:1, HBP:0 },
+  { name:"H Dubois #11",    team:"Bedford", GP:6, PA:19, AB:16, AVG:.188, OBP:.316, SLG:.188, OPS:.503, H:3, "1B":3, "2B":0, "3B":0, HR:0, RBI:0, R:4, BB:3, SO:5, HBP:0 },
+  { name:"W Smith #7",      team:"Bedford", GP:7, PA:19, AB:19, AVG:.263, OBP:.263, SLG:.263, OPS:.526, H:5, "1B":5, "2B":0, "3B":0, HR:0, RBI:3, R:2, BB:0, SO:2, HBP:0 },
+  { name:"J Boughter #16",  team:"Bedford", GP:6, PA:15, AB:13, AVG:.154, OBP:.200, SLG:.154, OPS:.354, H:2, "1B":2, "2B":0, "3B":0, HR:0, RBI:2, R:2, BB:1, SO:2, HBP:0 },
+  { name:"Z Papik #10",     team:"Bedford", GP:5, PA:13, AB:13, AVG:.308, OBP:.308, SLG:.385, OPS:.692, H:4, "1B":3, "2B":1, "3B":0, HR:0, RBI:1, R:1, BB:0, SO:4, HBP:0 },
+  { name:"C Sturgis #3",    team:"Bedford", GP:5, PA:12, AB:9,  AVG:.222, OBP:.417, SLG:.222, OPS:.639, H:2, "1B":2, "2B":0, "3B":0, HR:0, RBI:1, R:1, BB:2, SO:5, HBP:1 },
+  { name:"E Bruno #13",     team:"Bedford", GP:3, PA:9,  AB:7,  AVG:.000, OBP:.222, SLG:.000, OPS:.222, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:1, R:1, BB:2, SO:3, HBP:0 },
+  { name:"C Stuart #5",     team:"Bedford", GP:3, PA:7,  AB:7,  AVG:.286, OBP:.286, SLG:.286, OPS:.571, H:2, "1B":2, "2B":0, "3B":0, HR:0, RBI:1, R:0, BB:0, SO:1, HBP:0 },
+  { name:"C Dubois #9",     team:"Bedford", GP:5, PA:6,  AB:5,  AVG:.200, OBP:.167, SLG:.200, OPS:.367, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:1, R:2, BB:0, SO:2, HBP:0 },
+  { name:"B Leung #8",      team:"Bedford", GP:3, PA:3,  AB:3,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:0, SO:1, HBP:0 },
+  { name:"J Peterson #19",  team:"Bedford", GP:1, PA:2,  AB:2,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:2, HBP:0 },
+  // Windham (3-3, 6 GP)
+  { name:"A Blanco #11",    team:"Windham", GP:6, PA:22, AB:17, AVG:.294, OBP:.455, SLG:.353, OPS:.807, H:5, "1B":4, "2B":1, "3B":0, HR:0, RBI:0, R:3, BB:5, SO:5, HBP:0 },
+  { name:"J Coviello #7",   team:"Windham", GP:6, PA:21, AB:18, AVG:.333, OBP:.381, SLG:.556, OPS:.937, H:6, "1B":4, "2B":1, "3B":0, HR:1, RBI:2, R:5, BB:2, SO:6, HBP:0 },
+  { name:"E Charity #21",   team:"Windham", GP:6, PA:21, AB:20, AVG:.350, OBP:.333, SLG:.500, OPS:.833, H:7, "1B":5, "2B":1, "3B":1, HR:0, RBI:6, R:2, BB:0, SO:2, HBP:0 },
+  { name:"J Sullo #24",     team:"Windham", GP:6, PA:20, AB:16, AVG:.188, OBP:.350, SLG:.250, OPS:.600, H:3, "1B":2, "2B":1, "3B":0, HR:0, RBI:2, R:5, BB:4, SO:8, HBP:0 },
+  { name:"B Urquhart #25",  team:"Windham", GP:6, PA:19, AB:16, AVG:.562, OBP:.632, SLG:.562, OPS:1.194, H:9, "1B":9, "2B":0, "3B":0, HR:0, RBI:2, R:5, BB:3, SO:2, HBP:0 },
+  { name:"A Theriault #22", team:"Windham", GP:6, PA:16, AB:16, AVG:.250, OBP:.250, SLG:.438, OPS:.688, H:4, "1B":2, "2B":1, "3B":1, HR:0, RBI:4, R:0, BB:0, SO:5, HBP:0 },
+  { name:"A Connarn #27",   team:"Windham", GP:5, PA:15, AB:12, AVG:.333, OBP:.467, SLG:.417, OPS:.883, H:4, "1B":3, "2B":1, "3B":0, HR:0, RBI:0, R:4, BB:3, SO:5, HBP:0 },
+  { name:"V Folco #3",      team:"Windham", GP:5, PA:14, AB:13, AVG:.231, OBP:.286, SLG:.231, OPS:.516, H:3, "1B":3, "2B":0, "3B":0, HR:0, RBI:3, R:3, BB:1, SO:4, HBP:0 },
+  { name:"J Doster #8",     team:"Windham", GP:4, PA:12, AB:11, AVG:.182, OBP:.250, SLG:.182, OPS:.432, H:2, "1B":2, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:0, SO:2, HBP:1 },
+  { name:"J Martino #15",   team:"Windham", GP:4, PA:7,  AB:6,  AVG:.000, OBP:.143, SLG:.000, OPS:.143, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:1, R:0, BB:1, SO:3, HBP:0 },
+  { name:"D Marti...hick #10", team:"Windham", GP:3, PA:7,  AB:5,  AVG:.400, OBP:.571, SLG:.400, OPS:.971, H:2, "1B":2, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:2, SO:1, HBP:0 },
+  { name:"M Ridlon #20",    team:"Windham", GP:2, PA:5,  AB:5,  AVG:.200, OBP:.200, SLG:.800, OPS:1.000, H:1, "1B":0, "2B":0, "3B":0, HR:1, RBI:3, BB:0, SO:2, HBP:0 },
+  { name:"K Bailey #12",    team:"Windham", GP:3, PA:2,  AB:2,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0, "1B":0, "2B":0, "3B":0, HR:0, BB:0, HBP:0, _partial:true },
+  // Keene (8 GP, 0 HR)
+  { name:"K McDaniels #9",  team:"Keene", GP:8, PA:32, AB:24, AVG:.333, OBP:.469, SLG:.375, OPS:.844, H:8,  "1B":7, "2B":1, "3B":0, HR:0, RBI:5, R:7, BB:7, SO:5, HBP:0 },
+  { name:"C Tinnin #1",     team:"Keene", GP:8, PA:29, AB:25, AVG:.240, OBP:.345, SLG:.320, OPS:.665, H:6,  "1B":5, "2B":0, "3B":1, HR:0, RBI:5, R:4, BB:4, SO:7, HBP:0 },
+  { name:"B French #14",    team:"Keene", GP:8, PA:28, AB:26, AVG:.385, OBP:.429, SLG:.577, OPS:1.005, H:10, "1B":6, "2B":3, "3B":1, HR:0, RBI:7, R:4, BB:2, SO:2, HBP:0 },
+  { name:"S Goodwin #4",    team:"Keene", GP:8, PA:28, AB:22, AVG:.364, OBP:.462, SLG:.364, OPS:.825, H:8,  "1B":8, "2B":0, "3B":0, HR:0, RBI:0, R:4, BB:3, SO:3, HBP:1 },
+  { name:"I Azizeddine #7", team:"Keene", GP:8, PA:26, AB:24, AVG:.208, OBP:.269, SLG:.250, OPS:.519, H:5,  "1B":4, "2B":1, "3B":0, HR:0, RBI:1, R:1, BB:2, SO:6, HBP:0 },
+  { name:"S Bergquist #8",  team:"Keene", GP:8, PA:26, AB:21, AVG:.190, OBP:.346, SLG:.238, OPS:.584, H:4,  "1B":3, "2B":1, "3B":0, HR:0, RBI:3, R:1, BB:4, SO:8, HBP:1 },
+  { name:"N Connors #6",    team:"Keene", GP:7, PA:22, AB:17, AVG:.235, OBP:.381, SLG:.294, OPS:.675, H:4,  "1B":3, "2B":1, "3B":0, HR:0, RBI:1, R:2, BB:3, SO:5, HBP:1 },
+  { name:"K Abbot #13",     team:"Keene", GP:6, PA:16, AB:15, AVG:.067, OBP:.125, SLG:.067, OPS:.192, H:1,  "1B":1, "2B":0, "3B":0, HR:0, RBI:1, R:4, BB:1, SO:4, HBP:0 },
+  { name:"A Hodgman #16",   team:"Keene", GP:6, PA:14, AB:10, AVG:.100, OBP:.357, SLG:.200, OPS:.557, H:1,  "1B":0, "2B":1, "3B":0, HR:0, RBI:0, R:3, BB:4, SO:3, HBP:0 },
+  { name:"S Merry #2",      team:"Keene", GP:3, PA:6,  AB:5,  AVG:.000, OBP:.167, SLG:.000, OPS:.167, H:0,  "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:0, SO:0, HBP:1 },
+  { name:"W Ferguson #3",   team:"Keene", GP:2, PA:5,  AB:5,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0,  "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:3, HBP:0 },
+  { name:"J Dermatis #15",  team:"Keene", GP:4, PA:4,  AB:3,  AVG:.000, OBP:.250, SLG:.000, OPS:.250, H:0,  "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:0, SO:1, HBP:1 },
+  { name:"Z Trybulski #18", team:"Keene", GP:1, PA:4,  AB:3,  AVG:.000, OBP:.250, SLG:.000, OPS:.250, H:0,  "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:1, SO:0, HBP:0 },
+  // Concord (9 GP team; 1 HR by Vaillancourt; AB/PA derived from H/AVG/OBP — all integer-clean)
+  { name:"R Craigue #3",    team:"Concord", GP:9, PA:38, AB:26, AVG:.231, OBP:.429, SLG:.231, OPS:.659, H:6,  "1B":6,  "2B":0, "3B":0, HR:0, RBI:2, R:7, BB:8, SO:4, HBP:1 },
+  { name:"A Turant #8",     team:"Concord", GP:9, PA:36, AB:33, AVG:.394, OBP:.444, SLG:.485, OPS:.929, H:13, "1B":10, "2B":3, "3B":0, HR:0, RBI:4, R:8, BB:3, SO:5, HBP:0 },
+  { name:"W Simms #11",     team:"Concord", GP:9, PA:35, AB:30, AVG:.400, OBP:.486, SLG:.467, OPS:.952, H:12, "1B":10, "2B":2, "3B":0, HR:0, RBI:5, R:5, BB:4, SO:4, HBP:1 },
+  { name:"J Plodzik #22",   team:"Concord", GP:9, PA:34, AB:26, AVG:.385, OBP:.515, SLG:.462, OPS:.977, H:10, "1B":8,  "2B":2, "3B":0, HR:0, RBI:7, R:2, BB:7, SO:3, HBP:0 },
+  { name:"K Washburn #4",   team:"Concord", GP:7, PA:24, AB:21, AVG:.190, OBP:.292, SLG:.333, OPS:.625, H:4,  "1B":2,  "2B":1, "3B":1, HR:0, RBI:2, R:3, BB:2, SO:6, HBP:1 },
+  { name:"C Burbank #2",    team:"Concord", GP:6, PA:21, AB:18, AVG:.167, OBP:.250, SLG:.167, OPS:.417, H:3,  "1B":3,  "2B":0, "3B":0, HR:0, RBI:0, R:2, BB:2, SO:4, HBP:0 },
+  { name:"P Owen #18",      team:"Concord", GP:8, PA:21, AB:20, AVG:.200, OBP:.238, SLG:.200, OPS:.438, H:4,  "1B":4,  "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:1, SO:1, HBP:0 },
+  { name:"I Vaillancourt #5", team:"Concord", GP:6, PA:20, AB:17, AVG:.235, OBP:.350, SLG:.412, OPS:.762, H:4, "1B":3, "2B":0, "3B":0, HR:1, RBI:5, R:1, BB:3, SO:3, HBP:0 },
+  { name:"T Weaver #27",    team:"Concord", GP:8, PA:17, AB:13, AVG:.000, OBP:.059, SLG:.000, OPS:.059, H:0,  "1B":0,  "2B":0, "3B":0, HR:0, RBI:3, R:0, BB:1, SO:4, HBP:0 },
+  { name:"B Rossetti #9",   team:"Concord", GP:6, PA:17, AB:15, AVG:.067, OBP:.125, SLG:.067, OPS:.192, H:1,  "1B":1,  "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:1, SO:4, HBP:0 },
+  { name:"T Mayo #7",       team:"Concord", GP:7, PA:15, AB:11, AVG:.091, OBP:.333, SLG:.091, OPS:.424, H:1,  "1B":1,  "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:4, SO:2, HBP:0 },
+  { name:"M Barry #12",     team:"Concord", GP:4, PA:13, AB:11, AVG:.273, OBP:.385, SLG:.273, OPS:.657, H:3,  "1B":3,  "2B":0, "3B":0, HR:0, RBI:3, R:2, BB:2, SO:3, HBP:0 },
+  { name:"L Golden #1",     team:"Concord", GP:4, PA:8,  AB:7,  AVG:.000, OBP:.125, SLG:.000, OPS:.125, H:0,  "1B":0,  "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:1, SO:1, HBP:0 },
+  { name:"J Skafidas #13",  team:"Concord", GP:4, PA:5,  AB:4,  AVG:.000, OBP:.200, SLG:.000, OPS:.200, H:0,  "1B":0,  "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:1, SO:2, HBP:0 },
+  // Bishop G (8 GP, 0 HR; plate-discipline team, no qualified hitter above .800 OPS)
+  { name:"L Ireland #4",    team:"Bishop G", GP:8, PA:30, AB:24, AVG:.250, OBP:.400, SLG:.333, OPS:.733, H:6, "1B":4, "2B":2, "3B":0, HR:0, RBI:8, R:4, BB:6, SO:6, HBP:0 },
+  { name:"G Santos #22",    team:"Bishop G", GP:8, PA:27, AB:25, AVG:.240, OBP:.296, SLG:.360, OPS:.656, H:6, "1B":3, "2B":3, "3B":0, HR:0, RBI:3, R:4, BB:1, SO:4, HBP:1 },
+  { name:"T Parks #14",     team:"Bishop G", GP:8, PA:26, AB:20, AVG:.300, OBP:.423, SLG:.350, OPS:.773, H:6, "1B":5, "2B":1, "3B":0, HR:0, RBI:2, R:3, BB:5, SO:3, HBP:0 },
+  { name:"N Bowen #10",     team:"Bishop G", GP:8, PA:25, AB:21, AVG:.095, OBP:.240, SLG:.095, OPS:.335, H:2, "1B":2, "2B":0, "3B":0, HR:0, RBI:0, R:3, BB:4, SO:7, HBP:0 },
+  { name:"B Geiger #20",    team:"Bishop G", GP:8, PA:25, AB:18, AVG:.167, OBP:.400, SLG:.222, OPS:.622, H:3, "1B":2, "2B":1, "3B":0, HR:0, RBI:4, R:2, BB:3, SO:2, HBP:4 },
+  { name:"J Bowen #16",     team:"Bishop G", GP:8, PA:24, AB:19, AVG:.158, OBP:.333, SLG:.263, OPS:.596, H:3, "1B":2, "2B":0, "3B":1, HR:0, RBI:4, R:4, BB:5, SO:8, HBP:0 },
+  { name:"C Siraco #13",    team:"Bishop G", GP:8, PA:22, AB:15, AVG:.267, OBP:.500, SLG:.267, OPS:.767, H:4, "1B":4, "2B":0, "3B":0, HR:0, RBI:3, R:5, BB:7, SO:4, HBP:0 },
+  { name:"C Flanders #8",   team:"Bishop G", GP:8, PA:22, AB:19, AVG:.316, OBP:.409, SLG:.316, OPS:.725, H:6, "1B":6, "2B":0, "3B":0, HR:0, RBI:3, R:6, BB:2, SO:4, HBP:1 },
+  { name:"N Wyner #7",      team:"Bishop G", GP:4, PA:15, AB:12, AVG:.167, OBP:.333, SLG:.250, OPS:.583, H:2, "1B":1, "2B":1, "3B":0, HR:0, RBI:1, R:1, BB:2, SO:3, HBP:1 },
+  { name:"C Lancaster #1",  team:"Bishop G", GP:4, PA:9,  AB:5,  AVG:.200, OBP:.500, SLG:.200, OPS:.700, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:1, R:1, BB:3, SO:1, HBP:0 },
+  { name:"C Hand #19",      team:"Bishop G", GP:2, PA:5,  AB:4,  AVG:.250, OBP:.400, SLG:.250, OPS:.650, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:1, R:0, BB:1, SO:2, HBP:0 },
+  { name:"J Geiger #15",    team:"Bishop G", GP:3, PA:5,  AB:4,  AVG:.250, OBP:.400, SLG:.250, OPS:.650, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:1, SO:1, HBP:0 },
+  { name:"Z Jones #9",      team:"Bishop G", GP:2, PA:3,  AB:2,  AVG:.000, OBP:.333, SLG:.000, OPS:.333, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:1, SO:2, HBP:0 },
+  { name:"J Daley #11",     team:"Bishop G", GP:2, PA:3,  AB:3,  AVG:.667, OBP:.667, SLG:.667, OPS:1.333, H:2, "1B":2, "2B":0, "3B":0, HR:0, RBI:2, R:0, BB:0, SO:0, HBP:0 },
+  // Timberlane (8 GP, 0 HR)
+  { name:"M Fitzgerald #7",   team:"Timberlane", GP:8, PA:34, AB:31, AVG:.290, OBP:.353, SLG:.355, OPS:.708, H:9,  "1B":8, "2B":0, "3B":1, HR:0, RBI:5, R:6, BB:3, SO:4,  HBP:0 },
+  { name:"K Lamb #1",         team:"Timberlane", GP:8, PA:32, AB:23, AVG:.130, OBP:.355, SLG:.174, OPS:.529, H:3,  "1B":2, "2B":1, "3B":0, HR:0, RBI:2, R:5, BB:7, SO:11, HBP:1 },
+  { name:"M Santo...sso #4",  team:"Timberlane", GP:8, PA:30, AB:24, AVG:.417, OBP:.533, SLG:.500, OPS:1.033, H:10, "1B":8, "2B":2, "3B":0, HR:0, RBI:2, R:5, BB:5, SO:7,  HBP:1 },
+  { name:"N Hutchins #3",     team:"Timberlane", GP:8, PA:29, AB:25, AVG:.240, OBP:.345, SLG:.240, OPS:.585, H:6,  "1B":6, "2B":0, "3B":0, HR:0, RBI:4, R:4, BB:4, SO:9,  HBP:0 },
+  { name:"J Hannaford #8",    team:"Timberlane", GP:8, PA:28, AB:21, AVG:.286, OBP:.464, SLG:.286, OPS:.750, H:6,  "1B":6, "2B":0, "3B":0, HR:0, RBI:6, R:4, BB:5, SO:4,  HBP:2 },
+  { name:"C McIntyre #2",     team:"Timberlane", GP:8, PA:27, AB:21, AVG:.190, OBP:.370, SLG:.190, OPS:.561, H:4,  "1B":4, "2B":0, "3B":0, HR:0, RBI:2, R:4, BB:6, SO:6,  HBP:0 },
+  { name:"F Carrasquillo #6", team:"Timberlane", GP:7, PA:26, AB:20, AVG:.300, OBP:.462, SLG:.400, OPS:.862, H:6,  "1B":4, "2B":2, "3B":0, HR:0, RBI:5, R:6, BB:3, SO:5,  HBP:3 },
+  { name:"A Carrasquillo #9", team:"Timberlane", GP:7, PA:24, AB:21, AVG:.143, OBP:.250, SLG:.143, OPS:.393, H:3,  "1B":3, "2B":0, "3B":0, HR:0, RBI:3, R:1, BB:3, SO:9,  HBP:0 },
+  { name:"T Fielding #22",    team:"Timberlane", GP:6, PA:18, AB:15, AVG:.133, OBP:.188, SLG:.133, OPS:.321, H:2,  "1B":2, "2B":0, "3B":0, HR:0, RBI:2, R:0, BB:1, SO:5,  HBP:0 },
+  { name:"K Linehan #11",     team:"Timberlane", GP:5, PA:12, AB:11, AVG:.091, OBP:.167, SLG:.091, OPS:.258, H:1,  "1B":1, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:1, SO:4,  HBP:0 },
+  { name:"X Godzyk #12",      team:"Timberlane", GP:2, PA:4,  AB:3,  AVG:.333, OBP:.333, SLG:.333, OPS:.667, H:1,  "1B":1, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:0,  HBP:0 },
+  { name:"R Fellows #21",     team:"Timberlane", GP:2, PA:2,  AB:2,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0,  "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:2,  HBP:0 },
+  { name:"J Raymond #5",      team:"Timberlane", GP:1, PA:1,  AB:1,  AVG:1.000, OBP:1.000, SLG:1.000, OPS:2.000, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:1, R:1, BB:0, SO:0, HBP:0 },
+  { name:"J Marcotte #14",    team:"Timberlane", GP:2, PA:1,  AB:1,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0, "1B":0, "2B":0, "3B":0, HR:0, BB:0, HBP:0, _partial:true },
+  // Exeter
+  { name:"R Plante #1",     team:"Exeter",    OPS:1.146 },
+  { name:"E Battles #12",   team:"Exeter",    OPS:1.078 },
+  // Winnacunnet (8 GP, 0 HR; OBP/SLG derived from H/BB/HBP/AB/PA/TB)
+  { name:"B Pinso...ault #10", team:"Winnacunnet", GP:8, PA:31, AB:29, AVG:.310, OBP:.323, SLG:.414, OPS:.737, H:9,  "1B":6,  "2B":3, "3B":0, HR:0, RBI:9, R:5,  BB:1, SO:4, HBP:0 },
+  { name:"B Larck #2",      team:"Winnacunnet", GP:8, PA:30, AB:23, AVG:.304, OBP:.467, SLG:.478, OPS:.945, H:7,  "1B":4,  "2B":2, "3B":1, HR:0, RBI:1, R:11, BB:6, SO:2, HBP:1 },
+  { name:"H Reynoso #8",    team:"Winnacunnet", GP:8, PA:29, AB:25, AVG:.520, OBP:.571, SLG:.640, OPS:1.211, H:13, "1B":11, "2B":1, "3B":1, HR:0, RBI:3, R:6,  BB:3, SO:0, HBP:0 },
+  { name:"E Roy #3",        team:"Winnacunnet", GP:8, PA:29, AB:24, AVG:.208, OBP:.276, SLG:.292, OPS:.568, H:5,  "1B":3,  "2B":2, "3B":0, HR:0, RBI:3, R:4,  BB:2, SO:9, HBP:1 },
+  { name:"R Giuffre #34",   team:"Winnacunnet", GP:8, PA:27, AB:23, AVG:.391, OBP:.444, SLG:.391, OPS:.835, H:9,  "1B":9,  "2B":0, "3B":0, HR:0, RBI:7, R:2,  BB:3, SO:4, HBP:0 },
+  { name:"S Griffin #13",   team:"Winnacunnet", GP:8, PA:25, AB:23, AVG:.217, OBP:.280, SLG:.348, OPS:.628, H:5,  "1B":2,  "2B":3, "3B":0, HR:0, RBI:2, R:3,  BB:2, SO:8, HBP:0 },
+  { name:"N Bosco #9",      team:"Winnacunnet", GP:7, PA:13, AB:11, AVG:.182, OBP:.231, SLG:.182, OPS:.413, H:2,  "1B":2,  "2B":0, "3B":0, HR:0, RBI:1, R:1,  BB:1, SO:4, HBP:0 },
+  { name:"O Fritz #88",     team:"Winnacunnet", GP:4, PA:11, AB:11, AVG:.182, OBP:.182, SLG:.182, OPS:.364, H:2,  "1B":2,  "2B":0, "3B":0, HR:0, RBI:4, R:1,  BB:0, SO:2, HBP:0 },
+  { name:"J Coates #15",    team:"Winnacunnet", GP:5, PA:10, AB:9,  AVG:.222, OBP:.300, SLG:.222, OPS:.522, H:2,  "1B":2,  "2B":0, "3B":0, HR:0, RBI:1, R:0,  BB:1, SO:4, HBP:0 },
+  { name:"D Lake #11",      team:"Winnacunnet", GP:5, PA:7,  AB:5,  AVG:.000, OBP:.286, SLG:.000, OPS:.286, H:0,  "1B":0,  "2B":0, "3B":0, HR:0, RBI:0, R:2,  BB:2, SO:4, HBP:0 },
+  { name:"Z Ruiz #22",      team:"Winnacunnet", GP:3, PA:5,  AB:5,  AVG:.600, OBP:.600, SLG:.800, OPS:1.400, H:3, "1B":2,  "2B":1, "3B":0, HR:0, RBI:1, R:1,  BB:0, SO:1, HBP:0 },
+  { name:"B Powers #99",    team:"Winnacunnet", GP:2, PA:5,  AB:5,  AVG:.200, OBP:.200, SLG:.200, OPS:.400, H:1,  "1B":1,  "2B":0, "3B":0, HR:0, RBI:1, R:0,  BB:0, SO:0, HBP:0 },
+  { name:"D Souther #0",    team:"Winnacunnet", GP:2, PA:4,  AB:4,  AVG:.250, OBP:.250, SLG:.250, OPS:.500, H:1,  "1B":1,  "2B":0, "3B":0, HR:0, RBI:1, R:0,  BB:0, SO:2, HBP:0 },
+  { name:"K Knight #5",     team:"Winnacunnet", GP:2, PA:2,  AB:2,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0,  "1B":0,  "2B":0, "3B":0, HR:0, RBI:0, R:0,  BB:0, SO:0, HBP:0 },
+  // Londonderry (8 GP team; OBP/OPS derived from H/BB/HBP/PA — all integer-clean)
+  { name:"S Daron #5",       team:"Londonderry", GP:8, PA:31, AB:21, AVG:.238, OBP:.387, SLG:.238, OPS:.625, H:5,  "1B":5, "2B":0, "3B":0, HR:0, RBI:7, R:3, BB:4, SO:3, HBP:3 },
+  { name:"J Ruggiero #21",   team:"Londonderry", GP:8, PA:30, AB:23, AVG:.391, OBP:.467, SLG:.522, OPS:.988, H:9,  "1B":7, "2B":1, "3B":1, HR:0, RBI:5, R:6, BB:4, SO:2, HBP:1 },
+  { name:"C Jordan #9",      team:"Londonderry", GP:8, PA:30, AB:21, AVG:.286, OBP:.467, SLG:.286, OPS:.753, H:6,  "1B":6, "2B":0, "3B":0, HR:0, RBI:4, R:8, BB:4, SO:1, HBP:4 },
+  { name:"J Stott #3",       team:"Londonderry", GP:8, PA:30, AB:29, AVG:.345, OBP:.367, SLG:.517, OPS:.884, H:10, "1B":6, "2B":3, "3B":1, HR:0, RBI:5, R:9, BB:1, SO:3, HBP:0 },
+  { name:"C Washington #2",  team:"Londonderry", GP:8, PA:30, AB:25, AVG:.360, OBP:.467, SLG:.440, OPS:.907, H:9,  "1B":7, "2B":2, "3B":0, HR:0, RBI:5, R:7, BB:3, SO:5, HBP:2 },
+  { name:"C Loughlin #0",    team:"Londonderry", GP:8, PA:27, AB:18, AVG:.167, OBP:.444, SLG:.167, OPS:.611, H:3,  "1B":3, "2B":0, "3B":0, HR:0, RBI:1, R:5, BB:6, SO:5, HBP:3 },
+  { name:"B Fuller #10",     team:"Londonderry", GP:8, PA:25, AB:19, AVG:.105, OBP:.240, SLG:.158, OPS:.398, H:2,  "1B":1, "2B":1, "3B":0, HR:0, RBI:2, R:4, BB:4, SO:6, HBP:0 },
+  { name:"S Iorio #11",      team:"Londonderry", GP:6, PA:17, AB:12, AVG:.167, OBP:.412, SLG:.333, OPS:.745, H:2,  "1B":1, "2B":0, "3B":1, HR:0, RBI:3, R:2, BB:4, SO:6, HBP:1 },
+  { name:"B Labbe #1",       team:"Londonderry", GP:4, PA:11, AB:8,  AVG:.000, OBP:.273, SLG:.000, OPS:.273, H:0,  "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:2, SO:5, HBP:1 },
+  { name:"B Fitzgerald #8",  team:"Londonderry", GP:5, PA:10, AB:8,  AVG:.000, OBP:.200, SLG:.000, OPS:.200, H:0,  "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:2, BB:2, SO:1, HBP:0 },
+  { name:"C Hartley #39",    team:"Londonderry", GP:2, PA:7,  AB:7,  AVG:.286, OBP:.286, SLG:.286, OPS:.572, H:2,  "1B":2, "2B":0, "3B":0, HR:0, RBI:0, R:2, BB:0, HBP:0, _partial:true },
+  { name:"C Kearney #22",    team:"Londonderry", GP:4, PA:6,  AB:6,  AVG:.167, OBP:.167, SLG:.167, OPS:.334, H:1,  "1B":1, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, HBP:0, _partial:true },
+  { name:"C Marsh #7",       team:"Londonderry", GP:3, PA:4,  AB:4,  AVG:.250, OBP:.250, SLG:.250, OPS:.500, H:1,  "1B":1, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, HBP:0, _partial:true },
+];
+
+/* =========================================================================
+   DATA — team aggregates  (sourced from README "Team comparison" section)
+   ========================================================================= */
+const teams = [
+  { team:"Trinity",     record:"8 GP",  AVG:.316, OBP:.451, SLG:.518, OPS:.969, RpG:8.0, BBpct:17.5, Kpct:15.6, HR:4 },
+  { team:"Pinkerton",   record:"7-1",   OBP:.413,                     OPS:.755, RpG:6.4, BBpct:17.5,            HR:0, BB:50 },
+  { team:"Exeter",      record:"7-1",                                                                          HR:0 },
+  { team:"Windham",     record:"3-3",   AVG:.293,           SLG:.395, OPS:.771, RpG:5.0 },
+  { team:"Winnacunnet", record:"8 GP",  AVG:.296,           SLG:.377,                                          HR:0 },
+  { team:"Bishop G",    record:"8 GP",  OBP:.378,                                                              HR:0 },
+  { team:"Concord",     record:"9 GP",                                                    Kpct:15.1,           HR:1 },
+  { team:"Bedford",     record:"7 GP",                                                    Kpct:18.9,           HR:0 },
+  { team:"Goffstown",   record:"4-4",                                                                          HR:1 },
+  { team:"Alvirne",     record:"1-6",                                                                          HR:1 },
+  { team:"Keene",       record:"8 GP",                                                                         HR:0 },
+  { team:"Timberlane",  record:"8 GP",                                                                         HR:0 },
+  { team:"Nashua S",    record:"3-4",                       OPS:.529, RpG:1.71,                                HR:1 },
+  { team:"Nashua N",    record:"6 GP",                       OPS:.492,           Kpct:33.5 },
+  { team:"Londonderry", record:"—" },
+];
+
+/* =========================================================================
+   META
+   ========================================================================= */
+const teamMeta = {
+  "Trinity":     { cls:"t-trinity",     full:"Trinity Pioneers" },
+  "Goffstown":   { cls:"t-goffstown",   full:"Goffstown Grizzlies" },
+  "Alvirne":     { cls:"t-alvirne",     full:"Alvirne Broncos" },
+  "Pinkerton":   { cls:"t-pinkerton",   full:"Pinkerton Astros" },
+  "Nashua N":    { cls:"t-nashua_n",    full:"Nashua North Titans" },
+  "Nashua S":    { cls:"t-nashua_s",    full:"Nashua South Panthers" },
+  "Bedford":     { cls:"t-bedford",     full:"Bedford Bulldogs" },
+  "Windham":     { cls:"t-windham",     full:"Windham Jaguars" },
+  "Keene":       { cls:"t-keene",       full:"Keene Blackbirds" },
+  "Concord":     { cls:"t-concord",     full:"Concord Crimson Tide" },
+  "Bishop G":    { cls:"t-bishop_g",    full:"Bishop Guertin Cardinals" },
+  "Timberlane":  { cls:"t-timberlane",  full:"Timberlane Owls" },
+  "Exeter":      { cls:"t-exeter",      full:"Exeter Blue Hawks" },
+  "Winnacunnet": { cls:"t-winnacunnet", full:"Winnacunnet Warriors" },
+  "Londonderry": { cls:"t-londonderry", full:"Londonderry Lancers" },
+};
+const teamOrder = Object.keys(teamMeta);
+
+/* =========================================================================
+   HELPERS
+   ========================================================================= */
+function fmtRate(v){ if(v==null||isNaN(v)) return ""; const s=v.toFixed(3); return s.startsWith("0.")?s.slice(1):s; }
+function fmtPct(v){ if(v==null||isNaN(v)) return ""; return v.toFixed(1)+"%"; }
+function fmtInt(v){ if(v==null) return ""; return String(v); }
+function dash(html){ return html===""?'<span class="empty">—</span>':html; }
+
+function teamTag(team){
+  const m = teamMeta[team]; if(!m) return team;
+  return `<span class="tag ${m.cls}">${team}</span>`;
+}
+
+function sortBy(rows, key, dir){
+  const sign = dir==="desc"?-1:1;
+  return rows.slice().sort((a,b)=>{
+    const av=a[key], bv=b[key];
+    const an = av==null||av===""||(typeof av==="number"&&isNaN(av));
+    const bn = bv==null||bv===""||(typeof bv==="number"&&isNaN(bv));
+    if(an && bn) return 0;
+    if(an) return 1;          // missing always last
+    if(bn) return -1;
+    if(typeof av==="number" && typeof bv==="number") return (av-bv)*sign;
+    return String(av).localeCompare(String(bv))*sign;
+  });
+}
+
+/* =========================================================================
+   SIDEBAR — team list
+   ========================================================================= */
+let activeTeam = "ALL";
+function renderTeamList(){
+  const el = document.getElementById("teamList");
+  const items = [{key:"ALL",label:"All Teams",cls:""}].concat(
+    teamOrder.map(t=>({key:t,label:t,cls:teamMeta[t].cls}))
+  );
+  el.innerHTML = items.map(i=>{
+    const dot = i.cls?`<span class="dot ${i.cls}"></span>`:`<span class="dot" style="background:#7d92ad"></span>`;
+    const cls = i.key===activeTeam?"team-pick active":"team-pick";
+    return `<div class="${cls}" data-team="${i.key}">${dot}${i.label}</div>`;
+  }).join("");
+  el.querySelectorAll(".team-pick").forEach(n=>{
+    n.addEventListener("click", ()=>{
+      activeTeam = n.dataset.team;
+      renderTeamList();
+      renderBatting();
+      switchView("batting");
+    });
+  });
+}
+
+/* =========================================================================
+   BATTING VIEW
+   ========================================================================= */
+const battingCols = [
+  {k:"name", label:"Player", left:true, fmt:(v,r)=>{
+     const warn = r._partial?'<span class="warn-mark" title="Partial data">⚠</span>':"";
+     return `<span class="player-cell">${teamTag(r.team)} ${v}${warn}</span>`;
+  }},
+  {k:"GP",  label:"GP"},
+  {k:"PA",  label:"PA"},
+  {k:"AB",  label:"AB"},
+  {k:"AVG", label:"AVG", rate:true},
+  {k:"OBP", label:"OBP", rate:true},
+  {k:"SLG", label:"SLG", rate:true},
+  {k:"OPS", label:"OPS", rate:true, bold:true},
+  {k:"H",   label:"H"},
+  {k:"2B",  label:"2B"},
+  {k:"3B",  label:"3B"},
+  {k:"HR",  label:"HR"},
+  {k:"RBI", label:"RBI"},
+  {k:"R",   label:"R"},
+  {k:"BB",  label:"BB"},
+  {k:"SO",  label:"SO"},
+  {k:"HBP", label:"HBP"},
+];
+
+let battingSort = {key:"OPS", dir:"desc"};
+
+function renderBatting(){
+  const minAb = +document.getElementById("minAb").value;
+  document.getElementById("minAbVal").textContent = minAb;
+  const q = document.getElementById("search").value.trim().toLowerCase();
+
+  let rows = players.slice();
+  if(activeTeam!=="ALL") rows = rows.filter(p=>p.team===activeTeam);
+  rows = rows.filter(p=>{
+    const ab = p.AB==null?0:p.AB;
+    // when AB missing, only filter out if user set minAb above 0 AND we have any AB data
+    if(p.AB!=null && ab<minAb) return false;
+    if(q && !p.name.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  rows = sortBy(rows, battingSort.key, battingSort.dir);
+
+  const meta = activeTeam==="ALL"
+    ? `${rows.length} players shown · ${players.length} total`
+    : (teamMeta[activeTeam]?.full||activeTeam) + ` · ${rows.length} players shown`;
+  document.getElementById("battingTitle").textContent =
+    activeTeam==="ALL" ? "All Teams" : teamMeta[activeTeam].full;
+  document.getElementById("battingMeta").textContent = meta;
+
+  // header
+  const head = "<thead><tr>" + battingCols.map(c=>{
+    const cls = c.left?"left":"";
+    const arr = battingSort.key===c.k ? (battingSort.dir==="desc"?"▼":"▲") : "";
+    return `<th class="${cls}" data-col="${c.k}">${c.label}<span class="arr">${arr}</span></th>`;
+  }).join("") + "</tr></thead>";
+
+  // body
+  const body = "<tbody>" + rows.map(r=>{
+    const tr = battingCols.map(c=>{
+      let v = r[c.k];
+      let html;
+      if(c.k==="name") html = c.fmt(v, r);
+      else if(c.rate) html = fmtRate(v);
+      else html = fmtInt(v);
+      const cls = (c.left?"left":"") + (c.bold && v!=null?" ":"");
+      const style = c.bold && v!=null?'style="font-weight:600;color:var(--navy)"':"";
+      return `<td class="${cls}" ${style}>${dash(html)}</td>`;
+    }).join("");
+    return `<tr class="${r._partial?'partial':''}">${tr}</tr>`;
+  }).join("") + "</tbody>";
+
+  const t = document.getElementById("battingTable");
+  t.innerHTML = head + body;
+  t.querySelectorAll("thead th").forEach(th=>{
+    th.addEventListener("click", ()=>{
+      const k = th.dataset.col;
+      if(battingSort.key===k) battingSort.dir = battingSort.dir==="desc"?"asc":"desc";
+      else { battingSort.key=k; battingSort.dir="desc"; }
+      renderBatting();
+    });
+  });
+
+  document.getElementById("battingFooter").innerHTML =
+    `<strong>Note:</strong> Yellow rows = partial data flagged on ingest. ` +
+    `Many fields show "—" pending OCR of remaining screen batches. ` +
+    `Sort defaults to OPS desc. Min-AB slider hides players below threshold (rows with no AB shown by default).`;
+}
+
+/* =========================================================================
+   COMPARE VIEW
+   ========================================================================= */
+const teamCols = [
+  {k:"team",   label:"Team", left:true, fmt:(v)=>teamTag(v)+" "+(teamMeta[v]?.full||v)},
+  {k:"record", label:"Record", left:true, str:true},
+  {k:"OPS",    label:"OPS", rate:true, rank:"desc"},
+  {k:"AVG",    label:"AVG", rate:true, rank:"desc"},
+  {k:"OBP",    label:"OBP", rate:true, rank:"desc"},
+  {k:"SLG",    label:"SLG", rate:true, rank:"desc"},
+  {k:"RpG",    label:"R/G", fmt:(v)=>v==null?"":v.toFixed(2), rank:"desc"},
+  {k:"BBpct",  label:"BB%", fmt:fmtPct, rank:"desc"},
+  {k:"Kpct",   label:"K%",  fmt:fmtPct, rank:"asc"},
+  {k:"HR",     label:"HR",  rank:"desc"},
+];
+
+let teamSort = {key:"OPS", dir:"desc"};
+
+function computeRanks(rows, key, dir){
+  // Returns Map of team -> rank (1..N, ignoring nulls).
+  const valid = rows.filter(r=>r[key]!=null && !isNaN(r[key]));
+  const sign = dir==="desc"?-1:1;
+  valid.sort((a,b)=>(a[key]-b[key])*sign);
+  const m = new Map();
+  valid.forEach((r,i)=>m.set(r.team, i+1));
+  return m;
+}
+
+function renderCompare(){
+  let rows = sortBy(teams, teamSort.key, teamSort.dir);
+
+  // precompute ranks per ranked column
+  const rankMaps = {};
+  teamCols.forEach(c=>{ if(c.rank) rankMaps[c.k] = computeRanks(teams, c.k, c.rank); });
+
+  const head = "<thead><tr>" + teamCols.map(c=>{
+    const cls = c.left?"left":"";
+    const arr = teamSort.key===c.k ? (teamSort.dir==="desc"?"▼":"▲") : "";
+    return `<th class="${cls}" data-col="${c.k}">${c.label}<span class="arr">${arr}</span></th>`;
+  }).join("") + "</tr></thead>";
+
+  const body = "<tbody>" + rows.map(r=>{
+    const cells = teamCols.map(c=>{
+      const v = r[c.k];
+      let html;
+      if(c.fmt) html = c.fmt(v, r);
+      else if(c.rate) html = fmtRate(v);
+      else if(c.str) html = v||"";
+      else html = fmtInt(v);
+      let pill = "";
+      if(c.rank && rankMaps[c.k].has(r.team)){
+        const rk = rankMaps[c.k].get(r.team);
+        if(rk<=3) pill = ` <span class="rank-pill ${rk===1?'top':''}">#${rk}</span>`;
+      }
+      const cls = c.left?"left":"";
+      return `<td class="${cls}">${dash(html)}${pill}</td>`;
+    }).join("");
+    return `<tr>${cells}</tr>`;
+  }).join("") + "</tbody>";
+
+  const t = document.getElementById("teamTable");
+  t.innerHTML = head + body;
+  t.querySelectorAll("thead th").forEach(th=>{
+    th.addEventListener("click", ()=>{
+      const k = th.dataset.col;
+      if(teamSort.key===k) teamSort.dir = teamSort.dir==="desc"?"asc":"desc";
+      else { teamSort.key=k; teamSort.dir="desc"; }
+      renderCompare();
+    });
+  });
+}
+
+/* =========================================================================
+   LEADERS VIEW
+   ========================================================================= */
+function renderLeaders(){
+  const rows = sortBy(players.filter(p=>p.OPS!=null), "OPS", "desc").slice(0,25);
+  const head = `<thead><tr>
+    <th class="left">Rank</th>
+    <th class="left">Player</th>
+    <th class="left">Team</th>
+    <th>OPS</th>
+  </tr></thead>`;
+  const body = "<tbody>" + rows.map((r,i)=>{
+    const rk = i+1;
+    const pill = `<span class="rank-pill ${rk===1?'top':''}">#${rk}</span>`;
+    return `<tr>
+      <td class="left">${pill}</td>
+      <td class="left">${r.name}${r._partial?' <span class="warn-mark">⚠</span>':''}</td>
+      <td class="left">${teamTag(r.team)} ${teamMeta[r.team]?.full||""}</td>
+      <td style="font-weight:600;color:var(--navy)">${fmtRate(r.OPS)}</td>
+    </tr>`;
+  }).join("") + "</tbody>";
+  document.getElementById("leadersTable").innerHTML = head + body;
+}
+
+/* =========================================================================
+   VIEW SWITCHING
+   ========================================================================= */
+function switchView(v){
+  document.querySelectorAll(".nav-item").forEach(n=>{
+    n.classList.toggle("active", n.dataset.view===v);
+  });
+  document.getElementById("view-batting").classList.toggle("hidden", v!=="batting");
+  document.getElementById("view-compare").classList.toggle("hidden", v!=="compare");
+  document.getElementById("view-leaders").classList.toggle("hidden", v!=="leaders");
+  if(v==="compare") renderCompare();
+  if(v==="leaders") renderLeaders();
+}
+
+/* =========================================================================
+   BOOT
+   ========================================================================= */
+document.querySelectorAll(".nav-item").forEach(n=>{
+  n.addEventListener("click", ()=>switchView(n.dataset.view));
+});
+document.getElementById("minAb").addEventListener("input", renderBatting);
+document.getElementById("search").addEventListener("input", renderBatting);
+
+renderTeamList();
+renderBatting();
+</script>
+</body>
+</html>
