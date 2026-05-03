@@ -101,6 +101,7 @@
   .t-exeter{background:#0369A1}.t-winnacunnet{background:#15803D}
   .t-londonderry{background:#4F46E5}
   .t-dover{background:#15803D}.t-spaulding{background:#B91C1C} .t-salem { background: #1a3a8f; color: #fff; }
+  .t-merrimack{background:#475569}
 </style>
 </head>
 <body>
@@ -109,7 +110,7 @@
   <aside class="side">
     <div class="brand">
       <h1>NH Baseball Intel</h1>
-      <div class="sub">Spring 2026 · 17 of 20 teams</div>
+      <div class="sub">Spring 2026 · 18 of 20 teams</div>
     </div>
     <div class="nav">
       <div class="nav-item active" data-view="batting">Batting by Team</div>
@@ -455,6 +456,20 @@ const players = [
   { name:"J Conway #7",      team:"Salem", GP:1, PA:1,  AB:1,  AVG:1.000, OBP:1.000, SLG:1.000, OPS:2.000, H:1, "1B":1, "2B":0, "3B":0, HR:0, _partial:true },
   { name:"C Dasilveira #13", team:"Salem", GP:1, PA:1,  AB:1,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0, "1B":0, "2B":0, "3B":0, HR:0, _partial:true },
   { name:"O LaGrasse #8",    team:"Salem", GP:1, PA:0,  AB:0,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0, "1B":0, "2B":0, "3B":0, HR:0, _partial:true },
+  // Merrimack (5 GP)
+  { name:"E Sousa #9",         team:"Merrimack", GP:5, PA:20, AB:18, AVG:.222, OBP:.300, SLG:.222, OPS:.522, H:4, "1B":4, "2B":0, "3B":0, HR:0, RBI:2, R:1, BB:2, SO:4, HBP:0 },
+  { name:"B Goldstein #1",     team:"Merrimack", GP:5, PA:20, AB:14, AVG:.286, OBP:.500, SLG:.286, OPS:.786, H:4, "1B":4, "2B":0, "3B":0, HR:0, RBI:0, R:2, BB:6, SO:2, HBP:0 },
+  { name:"D Lavigne #17",      team:"Merrimack", GP:5, PA:19, AB:16, AVG:.375, OBP:.474, SLG:.375, OPS:.849, H:6, "1B":6, "2B":0, "3B":0, HR:0, RBI:1, R:1, BB:3, SO:3, HBP:0 },
+  { name:"K Brander #24",      team:"Merrimack", GP:5, PA:17, AB:15, AVG:.200, OBP:.294, SLG:.200, OPS:.494, H:3, "1B":3, "2B":0, "3B":0, HR:0, RBI:1, R:1, BB:2, SO:2, HBP:0 },
+  { name:"Z Retey #10",        team:"Merrimack", GP:5, PA:17, AB:14, AVG:.143, OBP:.294, SLG:.214, OPS:.508, H:2, "1B":1, "2B":1, "3B":0, HR:0, RBI:3, R:1, BB:2, SO:5, HBP:0 },
+  { name:"I Gagnon #18",       team:"Merrimack", GP:5, PA:16, AB:15, AVG:.133, OBP:.188, SLG:.133, OPS:.321, H:2, "1B":2, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:1, SO:2, HBP:0 },
+  { name:"G Graves #2",        team:"Merrimack", GP:5, PA:13, AB:10, AVG:.000, OBP:.231, SLG:.000, OPS:.231, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:3, SO:4, HBP:0 },
+  { name:"J Gallano #8",       team:"Merrimack", GP:4, PA:10, AB:10, AVG:.200, OBP:.200, SLG:.200, OPS:.400, H:2, "1B":2, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:4, HBP:0 },
+  { name:"L Aubut #16",        team:"Merrimack", GP:4, PA:9,  AB:9,  AVG:.333, OBP:.333, SLG:.333, OPS:.667, H:3, "1B":3, "2B":0, "3B":0, HR:0, RBI:2, R:2, BB:0, SO:5, HBP:0 },
+  { name:"S Staski...icz #15", team:"Merrimack", GP:3, PA:6,  AB:5,  AVG:.200, OBP:.333, SLG:.200, OPS:.533, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:0, R:1, BB:1, SO:4, HBP:0 },
+  { name:"B Matte",            team:"Merrimack", GP:1, PA:4,  AB:3,  AVG:.333, OBP:.500, SLG:.333, OPS:.833, H:1, "1B":1, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:1, SO:2, HBP:0 },
+  { name:"L Mantini #28",      team:"Merrimack", GP:1, PA:2,  AB:2,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:1, HBP:0 },
+  { name:"L Hoag #29",         team:"Merrimack", GP:1, PA:2,  AB:2,  AVG:.000, OBP:.000, SLG:.000, OPS:.000, H:0, "1B":0, "2B":0, "3B":0, HR:0, RBI:0, R:0, BB:0, SO:2, HBP:0 },
 ];
 
 /* =========================================================================
@@ -479,6 +494,7 @@ const teams = [
   { team:"Dover", record:"6-2", AVG:.280, OBP:.385, SLG:.355, OPS:.740, RpG:6.62, BBpct:12.9, Kpct:16.5, HR:1 },
   { team:"Spaulding", record:"6-2", AVG:.278, OBP:.371, SLG:.363, OPS:.734, RpG:6.12, BBpct:10.9, Kpct:24.9, HR:0 },
   { team:"Salem",     record:"3-6",                                                                          HR:1 },
+  { team:"Merrimack", record:"5 GP",                                                                         HR:0 },
 ];
 
 /* =========================================================================
@@ -503,6 +519,7 @@ const teamMeta = {
   "Dover":      { cls:"t-dover",      full:"Dover Green Wave" },
   "Spaulding":  { cls:"t-spaulding",  full:"Spaulding Red Raiders" },
   "Salem":      { cls:"t-salem",      full:"Salem Blue Devils" },
+  "Merrimack":  { cls:"t-merrimack",  full:"Merrimack Tomahawks" },
 };
 const teamOrder = Object.keys(teamMeta);
 
